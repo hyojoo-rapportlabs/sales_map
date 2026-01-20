@@ -172,8 +172,8 @@
         .location-card {
             background: #fff;
             border: 1px solid #e0e0e0;
-            padding: 16px;
-            margin-bottom: 8px;
+            padding: 12px;
+            margin-bottom: 6px;
             cursor: pointer;
             transition: all 0.15s;
             position: relative;
@@ -225,19 +225,22 @@
         }
 
         .location-header {
-            margin-bottom: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
         }
 
         .location-name {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: #000;
-            margin-bottom: 2px;
         }
 
         .location-company {
             font-size: 11px;
-            color: #999;
+            color: #aaa;
+            font-weight: 400;
         }
 
         .visit-badge {
@@ -250,20 +253,20 @@
         }
 
         .location-info {
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .location-info div {
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             display: flex;
             align-items: start;
             gap: 6px;
         }
 
         .location-info .label {
-            min-width: 60px;
+            min-width: 50px;
             color: #999;
         }
 
@@ -574,6 +577,159 @@
             border: 1px solid #e0e0e0;
         }
 
+        /* 로그 스타일 */
+        .popup-logs {
+            margin: 12px 0;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .logs-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .log-add-btn {
+            background: none;
+            border: none;
+            color: #007bff;
+            font-size: 11px;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+
+        .log-add-btn:hover {
+            text-decoration: underline;
+        }
+
+        .logs-list {
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            font-size: 11px;
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-date {
+            color: #999;
+            margin-right: 8px;
+        }
+
+        .log-type {
+            background: #FEE500;
+            color: #000;
+            padding: 1px 6px;
+            border-radius: 2px;
+            font-size: 10px;
+            margin-right: 6px;
+        }
+
+        .log-memo {
+            color: #666;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .log-delete {
+            float: right;
+            background: none;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .log-delete:hover {
+            color: #dc3545;
+        }
+
+        .no-logs {
+            color: #999;
+            font-size: 11px;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        /* 로그 추가 모달 */
+        .log-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+        }
+
+        .log-modal.active {
+            display: flex;
+        }
+
+        .log-modal-content {
+            background: #fff;
+            width: 320px;
+            padding: 20px;
+        }
+
+        .log-modal h3 {
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .log-types {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .log-type-btn {
+            padding: 6px 12px;
+            border: 1px solid #e0e0e0;
+            background: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .log-type-btn:hover, .log-type-btn.active {
+            background: #FEE500;
+            border-color: #FEE500;
+        }
+
+        .log-memo-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            font-size: 12px;
+            margin-bottom: 12px;
+            resize: none;
+        }
+
+        .log-modal-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
         /* 사이드 패널 */
         .side-panel {
             position: absolute;
@@ -688,7 +844,7 @@
                     </div>
                     <div class="form-group">
                         <label>사업자번호</label>
-                        <input type="text" id="inputBusinessNo">
+                        <input type="text" id="inputBusinessNo" oninput="formatBusinessNoInput(this)" placeholder="000-00-00000">
                     </div>
                     <div class="form-group">
                         <label>주소 *</label>
@@ -700,7 +856,7 @@
                     </div>
                     <div class="form-group">
                         <label>전화번호</label>
-                        <input type="text" id="inputPhone">
+                        <input type="text" id="inputPhone" oninput="formatPhoneNumber(this)">
                     </div>
                     <div class="form-group">
                         <label>이메일</label>
@@ -757,6 +913,25 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" onclick="saveCustomFields()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 로그 추가 모달 -->
+    <div class="log-modal" id="logModal">
+        <div class="log-modal-content">
+            <h3>활동 로그 추가</h3>
+            <input type="hidden" id="logLocationId">
+            <div class="log-types">
+                <button class="log-type-btn" data-type="제안서 전달">제안서 전달</button>
+                <button class="log-type-btn" data-type="미팅 진행">미팅 진행</button>
+                <button class="log-type-btn" data-type="부재 중">부재 중</button>
+                <button class="log-type-btn" data-type="기타">기타</button>
+            </div>
+            <textarea class="log-memo-input" id="logMemo" rows="3" placeholder="메모 (선택)"></textarea>
+            <div class="log-modal-buttons">
+                <button class="btn" onclick="closeLogModal()">취소</button>
+                <button class="btn btn-primary" onclick="saveLog()">저장</button>
             </div>
         </div>
     </div>
@@ -823,6 +998,206 @@
         let viewportFilter = false; // 지도 영역 필터
         let nextId = 5;
         let editingLocationId = null;
+        let selectedLogType = null;
+
+        // 사업자번호 포맷 (000-00-00000)
+        function formatBusinessNo(value) {
+            if (!value) return '';
+            const num = value.replace(/[^0-9]/g, '');
+            if (num.length >= 10) {
+                return num.slice(0, 3) + '-' + num.slice(3, 5) + '-' + num.slice(5, 10);
+            } else if (num.length > 5) {
+                return num.slice(0, 3) + '-' + num.slice(3, 5) + '-' + num.slice(5);
+            } else if (num.length > 3) {
+                return num.slice(0, 3) + '-' + num.slice(3);
+            }
+            return num;
+        }
+
+        // 사업자번호 입력 자동 포맷
+        function formatBusinessNoInput(input) {
+            const num = input.value.replace(/[^0-9]/g, '');
+            input.value = formatBusinessNo(num);
+        }
+
+        // 전화번호 포맷 (표시용)
+        function formatPhone(value) {
+            if (!value) return '';
+            const num = value.replace(/[^0-9]/g, '');
+            
+            if (num.startsWith('02')) {
+                if (num.length <= 9) {
+                    return num.slice(0, 2) + '-' + num.slice(2, 5) + '-' + num.slice(5);
+                } else {
+                    return num.slice(0, 2) + '-' + num.slice(2, 6) + '-' + num.slice(6, 10);
+                }
+            } else if (num.length === 8) {
+                // 1588-0000 등 대표번호
+                return num.slice(0, 4) + '-' + num.slice(4);
+            } else if (num.length === 10) {
+                return num.slice(0, 3) + '-' + num.slice(3, 6) + '-' + num.slice(6);
+            } else if (num.length === 11) {
+                return num.slice(0, 3) + '-' + num.slice(3, 7) + '-' + num.slice(7);
+            }
+            return value;
+        }
+
+        // 전화번호 자동 포맷
+        function formatPhoneNumber(input) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            let formatted = '';
+            
+            if (value.startsWith('02')) {
+                // 서울 지역번호 02
+                if (value.length <= 2) {
+                    formatted = value;
+                } else if (value.length <= 5) {
+                    formatted = value.slice(0, 2) + '-' + value.slice(2);
+                } else if (value.length <= 9) {
+                    formatted = value.slice(0, 2) + '-' + value.slice(2, 5) + '-' + value.slice(5);
+                } else {
+                    formatted = value.slice(0, 2) + '-' + value.slice(2, 6) + '-' + value.slice(6, 10);
+                }
+            } else if (value.startsWith('010') || value.startsWith('011') || value.startsWith('016') || value.startsWith('017') || value.startsWith('018') || value.startsWith('019')) {
+                // 휴대폰 번호
+                if (value.length <= 3) {
+                    formatted = value;
+                } else if (value.length <= 7) {
+                    formatted = value.slice(0, 3) + '-' + value.slice(3);
+                } else {
+                    formatted = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+                }
+            } else if (value.startsWith('070') || value.startsWith('080') || value.startsWith('050')) {
+                // 인터넷전화, 수신자부담, 개인식별번호
+                if (value.length <= 3) {
+                    formatted = value;
+                } else if (value.length <= 7) {
+                    formatted = value.slice(0, 3) + '-' + value.slice(3);
+                } else {
+                    formatted = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+                }
+            } else if (value.startsWith('0')) {
+                // 기타 지역번호 (031, 032, 033 등)
+                if (value.length <= 3) {
+                    formatted = value;
+                } else if (value.length <= 6) {
+                    formatted = value.slice(0, 3) + '-' + value.slice(3);
+                } else if (value.length <= 10) {
+                    formatted = value.slice(0, 3) + '-' + value.slice(3, 6) + '-' + value.slice(6);
+                } else {
+                    formatted = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+                }
+            } else {
+                // 0으로 시작하지 않는 경우 (1588, 1577 등 대표번호)
+                if (value.length <= 4) {
+                    formatted = value;
+                } else {
+                    formatted = value.slice(0, 4) + '-' + value.slice(4, 8);
+                }
+            }
+            
+            input.value = formatted;
+        }
+
+        // 로그 관리 함수
+        function getLogs(locationId) {
+            const allLogs = JSON.parse(localStorage.getItem('locationLogs') || '{}');
+            return allLogs[locationId] || [];
+        }
+
+        function saveLogs(locationId, logs) {
+            const allLogs = JSON.parse(localStorage.getItem('locationLogs') || '{}');
+            allLogs[locationId] = logs;
+            localStorage.setItem('locationLogs', JSON.stringify(allLogs));
+        }
+
+        function renderLogs(locationId) {
+            const logs = getLogs(locationId);
+            if (logs.length === 0) {
+                return '<div class="no-logs">아직 로그가 없습니다</div>';
+            }
+            return logs.map((log, index) => {
+                // 날짜 형식 통일
+                let displayDate = log.date;
+                if (log.date && log.date.match(/^\d{1,2}\/\d{1,2}$/)) {
+                    const [month, day] = log.date.split('/');
+                    const year = new Date().getFullYear();
+                    displayDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                }
+                return `
+                <div class="log-item">
+                    <button class="log-delete" onclick="deleteLog(${locationId}, ${index})">×</button>
+                    <span class="log-date">${displayDate}</span>
+                    <span class="log-type">${log.type}</span>
+                    ${log.memo ? `<span class="log-memo">${log.memo}</span>` : ''}
+                </div>
+            `}).join('');
+        }
+
+        function openLogModal(locationId) {
+            document.getElementById('logLocationId').value = locationId;
+            document.getElementById('logMemo').value = '';
+            selectedLogType = null;
+            document.querySelectorAll('.log-type-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('logModal').classList.add('active');
+        }
+
+        function closeLogModal() {
+            document.getElementById('logModal').classList.remove('active');
+        }
+
+        function saveLog() {
+            const locationId = parseInt(document.getElementById('logLocationId').value);
+            const memo = document.getElementById('logMemo').value.trim();
+            
+            if (!selectedLogType) {
+                alert('활동 유형을 선택해주세요.');
+                return;
+            }
+            
+            const logs = getLogs(locationId);
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const date = String(today.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${date}`;
+            
+            logs.unshift({
+                date: dateStr,
+                type: selectedLogType,
+                memo: memo
+            });
+            
+            saveLogs(locationId, logs);
+            closeLogModal();
+            updateAllMarkers();
+            
+            // 해당 마커의 팝업 업데이트
+            const marker = markers[locationId];
+            if (marker && marker.isPopupOpen()) {
+                marker.openPopup();
+            }
+        }
+
+        function deleteLog(locationId, logIndex) {
+            if (!confirm('이 로그를 삭제하시겠습니까?')) return;
+            
+            const logs = getLogs(locationId);
+            logs.splice(logIndex, 1);
+            saveLogs(locationId, logs);
+            updateAllMarkers();
+        }
+
+        // 로그 타입 버튼 이벤트
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.log-type-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.log-type-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedLogType = btn.dataset.type;
+                });
+            });
+        });
 
         // localStorage 관리
         function saveData() {
@@ -907,13 +1282,12 @@
                             <button class="card-btn" onclick="deleteLocation(${loc.id}, event)" title="삭제">×</button>
                         </div>
                         <div class="location-header">
-                            <div class="location-name">${loc.name}</div>
-                            ${loc.company ? `<div class="location-company">${loc.company}</div>` : ''}
+                            <span class="location-name">${loc.name}</span>${loc.company ? `<span class="location-company">${loc.company}</span>` : ''}
                             <div class="visit-badge">${isVisited ? 'visited' : ''}</div>
                         </div>
                         <div class="location-info">
                             <div><span class="label">주소</span><span>${loc.address}</span></div>
-                            ${loc.phone ? `<div><span class="label">전화</span><span>${loc.phone}</span></div>` : ''}
+                            ${loc.phone ? `<div><span class="label">전화</span><span>${formatPhone(loc.phone)}</span></div>` : ''}
                             ${loc.email ? `<div><span class="label">이메일</span><span>${loc.email}</span></div>` : ''}
                             ${customFieldsHtml}
                         </div>
@@ -1005,7 +1379,7 @@
 
                 let customFieldsHtml = '';
                 customFields.forEach(field => {
-                    const value = location.customData[field.key] || '';
+                    const value = (location.customData && location.customData[field.key]) || '';
                     if (value) {
                         customFieldsHtml += `<div><span class="label">${field.label}</span><span>${value}</span></div>`;
                     }
@@ -1015,12 +1389,21 @@
                     <div class="popup-content">
                         <div class="popup-title">${location.name}</div>
                         <div class="popup-info">
-                            ${location.company ? `<div><span class="label">회사</span><span>${location.company}</span></div>` : ''}
+                            ${location.company ? `<div><span class="label">회사</span><span>${location.company}${location.businessNo ? ` <span style="color:#999">(${formatBusinessNo(location.businessNo)})</span>` : ''}</span></div>` : ''}
                             <div><span class="label">주소</span><span>${location.address}</span></div>
-                            ${location.phone ? `<div><span class="label">전화</span><span><a href="tel:${location.phone}">${location.phone}</a></span></div>` : ''}
+                            ${location.phone ? `<div><span class="label">전화</span><span><a href="tel:${location.phone.replace(/[^0-9]/g, '')}">${formatPhone(location.phone)}</a></span></div>` : ''}
                             ${location.email ? `<div><span class="label">이메일</span><span><a href="mailto:${location.email}">${location.email}</a></span></div>` : ''}
                             ${location.website ? `<div><span class="label">홈페이지</span><span><a href="${location.website}" target="_blank">${location.website}</a></span></div>` : ''}
                             ${customFieldsHtml}
+                        </div>
+                        <div class="popup-logs">
+                            <div class="logs-header">
+                                <span class="logs-title">활동 로그</span>
+                                <button class="log-add-btn" onclick="openLogModal(${location.id})">+ 추가</button>
+                            </div>
+                            <div class="logs-list" id="logs-${location.id}">
+                                ${renderLogs(location.id)}
+                            </div>
                         </div>
                         <div class="popup-action">
                             <button class="popup-btn ${isVisited ? 'visited' : ''}" onclick="toggleVisitFromPopup(${location.id})">
@@ -1043,15 +1426,19 @@
             const location = locations.find(l => l.id === id);
             const marker = markers[id];
             
-            if (location && marker && map) {
+            console.log('focusLocation 호출:', id, location, marker, map);
+            
+            if (location && map) {
                 map.setView([location.lat, location.lng], 16, {
                     animate: true,
                     duration: 0.5
                 });
                 
-                setTimeout(() => {
-                    marker.openPopup();
-                }, 300);
+                if (marker) {
+                    setTimeout(() => {
+                        marker.openPopup();
+                    }, 300);
+                }
             }
         }
 
@@ -1403,6 +1790,12 @@
         document.getElementById('fieldsModal').addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
                 closeFieldsModal();
+            }
+        });
+
+        document.getElementById('logModal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('log-modal')) {
+                closeLogModal();
             }
         });
     </script>
