@@ -1211,7 +1211,18 @@
             
             if (savedLocations) {
                 locations = JSON.parse(savedLocations);
-                nextId = Math.max(...locations.map(l => l.id)) + 1;
+                // id가 null이거나 없는 항목 정리
+                locations = locations.filter(l => l.id !== null && l.id !== undefined);
+                locations.forEach((l, i) => {
+                    if (l.id === null || l.id === undefined) {
+                        l.id = i + 1;
+                    }
+                });
+                if (locations.length > 0) {
+                    nextId = Math.max(...locations.map(l => l.id || 0)) + 1;
+                } else {
+                    nextId = 1;
+                }
             }
             
             if (savedFields) {
