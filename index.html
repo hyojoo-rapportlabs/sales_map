@@ -892,6 +892,15 @@
             </div>
             <div class="modal-body">
                 <div class="custom-fields-list" style="margin-top: 0; border-top: none; padding-top: 0;">
+                    <h3>💾 데이터 백업</h3>
+                    <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+                        <button class="btn" onclick="exportData()">내보내기 (JSON)</button>
+                        <button class="btn" onclick="document.getElementById('importFile').click()">가져오기</button>
+                        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+                    </div>
+                </div>
+
+                <div class="custom-fields-list" style="border-top: 1px solid #e0e0e0; padding-top: 20px;">
                     <h3>🔑 카카오 JavaScript 키</h3>
                     <div style="font-size: 12px; color: #666; margin-bottom: 12px; line-height: 1.6;">
                         주소로 정확한 좌표를 검색하려면 카카오 JavaScript 키가 필요합니다.<br>
@@ -1203,6 +1212,60 @@
         function saveData() {
             localStorage.setItem('salesLocations', JSON.stringify(locations));
             localStorage.setItem('customFields', JSON.stringify(customFields));
+        }
+
+        // 데이터 내보내기
+        function exportData() {
+            const data = {
+                locations: locations,
+                customFields: customFields,
+                logs: JSON.parse(localStorage.getItem('locationLogs') || '{}'),
+                visited: JSON.parse(localStorage.getItem('visitedLocations') || '{}'),
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sales_map_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 데이터 가져오기
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.locations) {
+                        locations = data.locations;
+                        localStorage.setItem('salesLocations', JSON.stringify(locations));
+                    }
+                    if (data.customFields) {
+                        customFields = data.customFields;
+                        localStorage.setItem('customFields', JSON.stringify(customFields));
+                    }
+                    if (data.logs) {
+                        localStorage.setItem('locationLogs', JSON.stringify(data.logs));
+                    }
+                    if (data.visited) {
+                        localStorage.setItem('visitedLocations', JSON.stringify(data.visited));
+                    }
+                    
+                    alert('데이터를 불러왔습니다!');
+                    location.reload();
+                } catch (err) {
+                    alert('파일을 읽을 수 없습니다.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
         }
 
         function loadData() {
