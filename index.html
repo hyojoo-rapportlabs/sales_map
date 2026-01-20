@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -162,6 +163,22 @@
             border-color: #FEE500;
             color: #121212;
             font-weight: 600;
+        }
+
+        .search-box {
+            margin-top: 10px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e0e0e0;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: #FEE500;
         }
 
         .locations {
@@ -776,6 +793,8 @@
                     <div class="header-buttons">
                         <span class="text-btn" onclick="openFieldsModal()">수정</span>
                         <span class="text-btn" onclick="openAddPanel()">추가</span>
+                        <span class="text-btn" onclick="document.getElementById('excelUpload').click()">엑셀</span>
+                        <input type="file" id="excelUpload" accept=".xlsx,.xls" style="display:none" onchange="uploadExcel(event)">
                     </div>
                 </div>
                 <div class="header-actions">
@@ -804,6 +823,9 @@
                     <button class="filter-btn" data-filter="visited">방문</button>
                     <button class="filter-btn" data-filter="not-visited">미방문</button>
                     <button class="filter-btn" id="viewportBtn" onclick="toggleViewportFilter()">📍 영역</button>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="업체/회사명 검색" oninput="renderLocations()">
                 </div>
             </div>
 
@@ -1255,6 +1277,117 @@
             event.target.value = '';
         }
 
+        // 엑셀 대량 업로드
+        async function uploadExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const rows = XLSX.utils.sheet_to_json(sheet);
+                    
+                    if (rows.length === 0) {
+                        alert('엑셀에 데이터가 없습니다.');
+                        return;
+                    }
+                    
+                    let added = 0;
+                    let failed = 0;
+                    
+                    for (const row of rows) {
+                        const name = row['업체명'] || row['name'] || '';
+                        const address = row['주소'] || row['address'] || '';
+                        
+                        if (!name || !address) {
+                            failed++;
+                            continue;
+                        }
+                        
+                        let lat = parseFloat(row['위도'] || row['lat'] || 0);
+                        let lng = parseFloat(row['경도'] || row['lng'] || 0);
+                        
+                        // 좌표가 없으면 카카오 API로 검색
+                        if (!lat || !lng) {
+                            const coords = await searchCoordsForExcel(address);
+                            if (coords) {
+                                lat = coords.lat;
+                                lng = coords.lng;
+                            } else {
+                                failed++;
+                                continue;
+                            }
+                        }
+                        
+                        const newLocation = {
+                            id: nextId++,
+                            name: name,
+                            company: row['회사명'] || row['company'] || '',
+                            businessNo: row['사업자번호'] || row['businessNo'] || '',
+                            address: address,
+                            phone: row['전화번호'] || row['phone'] || '',
+                            email: row['이메일'] || row['email'] || '',
+                            website: row['홈페이지'] || row['website'] || '',
+                            lat: lat,
+                            lng: lng,
+                            customData: {}
+                        };
+                        
+                        locations.push(newLocation);
+                        added++;
+                    }
+                    
+                    saveData();
+                    renderLocations();
+                    updateAllMarkers();
+                    
+                    alert(`완료! ${added}개 추가, ${failed}개 실패`);
+                } catch (err) {
+                    console.error(err);
+                    alert('엑셀 파일을 읽을 수 없습니다.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = '';
+        }
+        
+        // 엑셀용 좌표 검색 (카카오 API)
+        function searchCoordsForExcel(address) {
+            return new Promise((resolve) => {
+                if (!kakaoLoaded) {
+                    resolve(null);
+                    return;
+                }
+                
+                const geocoder = new kakao.maps.services.Geocoder();
+                geocoder.addressSearch(address, (result, status) => {
+                    if (status === kakao.maps.services.Status.OK && result.length > 0) {
+                        resolve({
+                            lat: parseFloat(result[0].y),
+                            lng: parseFloat(result[0].x)
+                        });
+                    } else {
+                        // 키워드 검색 시도
+                        const places = new kakao.maps.services.Places();
+                        places.keywordSearch(address, (result, status) => {
+                            if (status === kakao.maps.services.Status.OK && result.length > 0) {
+                                resolve({
+                                    lat: parseFloat(result[0].y),
+                                    lng: parseFloat(result[0].x)
+                                });
+                            } else {
+                                resolve(null);
+                            }
+                        });
+                    }
+                });
+            });
+        }
+
         function loadData() {
             const savedLocations = localStorage.getItem('salesLocations');
             const savedFields = localStorage.getItem('customFields');
@@ -1309,8 +1442,16 @@
         function renderLocations() {
             const visited = getVisitedStatus();
             const container = document.getElementById('locationList');
+            const searchQuery = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
             
             let filteredLocations = locations.filter(loc => {
+                // 검색어 필터
+                if (searchQuery) {
+                    const nameMatch = (loc.name || '').toLowerCase().includes(searchQuery);
+                    const companyMatch = (loc.company || '').toLowerCase().includes(searchQuery);
+                    if (!nameMatch && !companyMatch) return false;
+                }
+                
                 // 방문 상태 필터
                 if (currentFilter === 'visited' && !visited[loc.id]) return false;
                 if (currentFilter === 'not-visited' && visited[loc.id]) return false;
@@ -1324,6 +1465,9 @@
                 
                 return true;
             });
+            
+            // 업체명 기준 오름차순 정렬
+            filteredLocations.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ko'));
 
             container.innerHTML = filteredLocations.map(loc => {
                 const isVisited = visited[loc.id];
