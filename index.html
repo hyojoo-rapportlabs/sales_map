@@ -486,10 +486,28 @@
         .custom-marker {
             font-size: 35px;
             line-height: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .custom-marker.visited {
             opacity: 0.4;
+        }
+
+        .marker-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: #121212;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2px 4px;
+            border-radius: 2px;
+            white-space: nowrap;
+            margin-bottom: 2px;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: none;
         }
 
         .custom-marker-inner {
@@ -1483,6 +1501,7 @@
                 return `
                     <div class="location-card ${isVisited ? 'visited' : ''}" data-id="${loc.id}">
                         <div class="card-actions">
+                            <button class="card-btn" onclick="copyLocationInfo(${loc.id}, event)" title="복사">📋</button>
                             <button class="card-btn" onclick="openEditPanel(${loc.id}, event)" title="수정">✎</button>
                             <button class="card-btn" onclick="deleteLocation(${loc.id}, event)" title="삭제">×</button>
                         </div>
@@ -1594,11 +1613,12 @@
                 const customIcon = L.divIcon({
                     className: 'custom-div-icon',
                     html: `<div class="custom-marker ${isVisited ? 'visited' : ''}">
+                             <span class="marker-label">${location.name}</span>
                              <span class="custom-marker-inner">🆘</span>
                            </div>`,
-                    iconSize: [35, 35],
-                    iconAnchor: [17, 35],
-                    popupAnchor: [0, -35]
+                    iconSize: [35, 50],
+                    iconAnchor: [17, 50],
+                    popupAnchor: [0, -50]
                 });
 
                 const marker = L.marker([location.lat + offsetLat, location.lng + offsetLng], {
@@ -1633,8 +1653,9 @@
                                 ${renderLogs(location.id)}
                             </div>
                         </div>
-                        <div class="popup-action">
-                            <button class="popup-btn ${isVisited ? 'visited' : ''}" onclick="toggleVisitFromPopup(${location.id})">
+                        <div class="popup-action" style="display: flex; gap: 8px;">
+                            <button class="popup-btn" style="flex: 1; background: #fff; border: 1px solid #e0e0e0;" onclick="openEditPanel(${location.id})">수정</button>
+                            <button class="popup-btn ${isVisited ? 'visited' : ''}" style="flex: 2;" onclick="toggleVisitFromPopup(${location.id})">
                                 ${isVisited ? '미방문으로 변경' : '방문완료'}
                             </button>
                         </div>
@@ -1917,6 +1938,27 @@
             renderLocations();
             updateAllMarkers();
             closeSidePanel();
+        }
+
+        function copyLocationInfo(id, event) {
+            event.stopPropagation();
+            const loc = locations.find(l => l.id === id);
+            if (!loc) return;
+            
+            let text = loc.name + '\n';
+            if (loc.company) text += '회사 ' + loc.company + '\n';
+            text += '주소 ' + loc.address + '\n';
+            if (loc.phone) text += '전화 ' + formatPhone(loc.phone) + '\n';
+            if (loc.email) text += '이메일 ' + loc.email + '\n';
+            if (loc.website) text += '홈페이지 ' + loc.website + '\n';
+            
+            navigator.clipboard.writeText(text.trim()).then(() => {
+                // 복사 완료 피드백
+                const btn = event.target;
+                const original = btn.textContent;
+                btn.textContent = '✓';
+                setTimeout(() => btn.textContent = original, 1000);
+            });
         }
 
         function deleteLocation(id, event) {
